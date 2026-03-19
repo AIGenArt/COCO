@@ -62,6 +62,22 @@ export async function getWorkspaceById(workspaceId: string) {
   return (data as WorkspaceRecord | null) ?? null;
 }
 
+export async function getWorkspaceByIdForUser(workspaceId: string, userId: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .select("*")
+    .eq("id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw error;
+  }
+
+  return (data as WorkspaceRecord | null) ?? null;
+}
+
 export async function updateWorkspace(workspaceId: string, updates: Record<string, unknown>) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
@@ -73,6 +89,27 @@ export async function updateWorkspace(workspaceId: string, updates: Record<strin
 
   if (error) {
     throw error;
+  }
+
+  return data as WorkspaceRecord;
+}
+
+export async function updateWorkspaceForUser(workspaceId: string, userId: string, updates: Record<string, unknown>) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update(updates)
+    .eq("id", workspaceId)
+    .eq("user_id", userId)
+    .select()
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Workspace not found");
   }
 
   return data as WorkspaceRecord;

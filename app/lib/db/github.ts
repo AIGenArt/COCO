@@ -61,6 +61,22 @@ export async function getInstallationById(installationId: string) {
   return (data as GitHubInstallationRecord | null) ?? null;
 }
 
+
+export async function getRepoAccessById(repoAccessId: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("github_repo_access")
+    .select("*")
+    .eq("id", repoAccessId)
+    .maybeSingle();
+
+  if (error && !isNoRowsError(error)) {
+    throw error;
+  }
+
+  return (data as GitHubRepoAccessRecord | null) ?? null;
+}
+
 export async function listCachedReposForInstallation(installationId: string) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase

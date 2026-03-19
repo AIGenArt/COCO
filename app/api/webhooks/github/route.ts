@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { logger } from "../../../lib/logger";
 import { processGitHubWebhook, verifyGitHubWebhookSignature } from "../../../lib/github/github-webhooks";
 
+function invalidWebhookResponse(code: string, message: string, status: number) {
+  return NextResponse.json({ success: false, error: { code, message } }, { status });
+}
+
 export async function POST(request: Request) {
   const payload = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
@@ -9,15 +13,22 @@ export async function POST(request: Request) {
   const eventType = request.headers.get("x-github-event");
 
   if (!verifyGitHubWebhookSignature(payload, signature)) {
-    return NextResponse.json({ success: false, error: { code: "invalid_signature", message: "Invalid webhook signature" } }, { status: 401 });
+    return invalidWebhookResponse("invalid_signature", "Invalid webhook signature", 401);
   }
 
   if (!deliveryId || !eventType) {
-    return NextResponse.json({ success: false, error: { code: "invalid_webhook", message: "Missing GitHub delivery headers" } }, { status: 400 });
+    return invalidWebhookResponse("invalid_webhook", "Missing GitHub delivery headers", 400);
+  }
+
+  let parsedPayload: Record<string, unknown>;
+  try {
+    parsedPayload = JSON.parse(payload) as Record<string, unknown>;
+  } catch (error) {
+    logger.warn({ deliveryId, eventType, error }, "Received invalid GitHub webhook JSON payload");
+    return invalidWebhookResponse("invalid_payload", "Invalid webhook payload", 400);
   }
 
   try {
-    const parsedPayload = JSON.parse(payload) as Record<string, unknown>;
     const result = await processGitHubWebhook({
       deliveryId,
       eventType,
@@ -27,6 +38,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, duplicate: result.duplicate }, { status: result.duplicate ? 200 : 202 });
   } catch (error) {
     logger.error({ deliveryId, eventType, error }, "GitHub webhook handler failed");
-    return NextResponse.json({ success: false, error: { code: "webhook_processing_failed", message: "Webhook processing failed" } }, { status: 500 });
+    return invalidWebhookResponse("webhook_processing_failed", "Webhook processing failed", 500);
   }
 }

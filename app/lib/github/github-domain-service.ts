@@ -1,4 +1,4 @@
-import { getWorkspaceById, updateWorkspace } from "../db/workspaces";
+import { getWorkspaceByIdForUser, updateWorkspaceForUser } from "../db/workspaces";
 import { getInstallationByGithubInstallationId, getInstallationById, listCachedReposForInstallation } from "../db/github";
 import { logger } from "../logger";
 import { GitHubRateLimitError } from "./github-rate-limiter";
@@ -83,7 +83,7 @@ export class GitHubDomainService {
           installationId: context.installation.github_installation_id
         });
 
-        await updateWorkspace(workspaceId, { last_activity_at: new Date().toISOString() });
+        await updateWorkspaceForUser(workspaceId, userId, { last_activity_at: new Date().toISOString() });
         return result;
       },
       {
@@ -101,7 +101,7 @@ export class GitHubDomainService {
     await this.operationQueue.run(
       `workspace-write:${workspaceId}`,
       async () => {
-        await updateWorkspace(workspaceId, { last_activity_at: new Date().toISOString() });
+        await updateWorkspaceForUser(workspaceId, userId, { last_activity_at: new Date().toISOString() });
       },
       {
         workspaceId,
@@ -112,8 +112,8 @@ export class GitHubDomainService {
   }
 
   private async assertWorkspaceGithubAccess(workspaceId: string, userId: string) {
-    const workspace = await getWorkspaceById(workspaceId);
-    if (!workspace || workspace.user_id !== userId) {
+    const workspace = await getWorkspaceByIdForUser(workspaceId, userId);
+    if (!workspace) {
       throw new Error("Workspace not found");
     }
 
