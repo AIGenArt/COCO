@@ -26,3 +26,4 @@ logs/
 # Build
 dist/
 coverage/
+.tmp-tests/
