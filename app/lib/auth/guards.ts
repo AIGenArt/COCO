@@ -23,9 +23,11 @@ export async function requireUser(): Promise<User> {
 
   const config = getPublicConfig();
 
-  const supabase = createServerClient(config.NEXT_PUBLIC_SUPABASE_URL, config.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: cookieMethods
-  });
+  const supabase = createServerClient(
+    config.NEXT_PUBLIC_SUPABASE_URL,
+    config.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { cookies: cookieMethods }
+  );
 
   const {
     data: { user },
@@ -40,5 +42,8 @@ export async function requireUser(): Promise<User> {
 }
 
 export function unauthorizedResponse(): NextResponse {
-  return NextResponse.json({ success: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
+  return NextResponse.json(
+    { success: false, error: { code: "unauthorized", message: "Unauthorized" } },
+    { status: 401 }
+  );
 }

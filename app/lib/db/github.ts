@@ -62,7 +62,6 @@ export async function getInstallationById(installationId: string) {
   return (data as GitHubInstallationRecord | null) ?? null;
 }
 
-
 export async function getRepoAccessById(repoAccessId: string) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
@@ -94,8 +93,11 @@ export async function listCachedReposForInstallation(installationId: string) {
   return (data ?? []) as GitHubRepoAccessRecord[];
 }
 
-
-export async function upsertRepoAccessRecords(installationId: string, repos: RepoSummary[], etag?: string | null): Promise<void> {
+export async function upsertRepoAccessRecords(
+  installationId: string,
+  repos: RepoSummary[],
+  etag?: string | null
+): Promise<void> {
   if (repos.length === 0) {
     return;
   }
@@ -123,7 +125,11 @@ export async function upsertRepoAccessRecords(installationId: string, repos: Rep
   }
 }
 
-export async function upsertInstallationRepos(installationId: string, repos: RepoSummary[], etag?: string | null): Promise<void> {
+export async function upsertInstallationRepos(
+  installationId: string,
+  repos: RepoSummary[],
+  etag?: string | null
+): Promise<void> {
   const supabase = getSupabaseServiceClient();
   const now = new Date().toISOString();
   const seenKeys = new Set(repos.map((repo) => `${repo.owner}/${repo.repo}`.toLowerCase()));
@@ -215,7 +221,9 @@ export async function markReposAccessState(input: {
 
 export async function updateInstallationSyncState(
   installationId: string,
-  updates: Partial<Pick<GitHubInstallationRecord, "last_synced_at" | "sync_status" | "rate_limited_until" | "updated_at">>
+  updates: Partial<
+    Pick<GitHubInstallationRecord, "last_synced_at" | "sync_status" | "rate_limited_until" | "updated_at">
+  >
 ): Promise<void> {
   const supabase = getSupabaseServiceClient();
   const { error } = await supabase.from("github_installations").update(updates).eq("id", installationId);

@@ -48,7 +48,10 @@ function getErrorMessage(error: unknown): string {
   return "Failed to open workspace";
 }
 
-async function assertGitHubWorkspaceAccess(input: z.infer<typeof OpenWorkspaceRequest>, userId: string): Promise<void> {
+async function assertGitHubWorkspaceAccess(
+  input: z.infer<typeof OpenWorkspaceRequest>,
+  userId: string
+): Promise<void> {
   if (input.type !== "github_repo") {
     return;
   }
@@ -90,7 +93,10 @@ export async function POST(request: Request) {
 
     const runtimeResponse = await createRuntimeWorkspace(workspace.id);
     if (!runtimeResponse.success) {
-      logger.error({ workspaceId: workspace.id, error: runtimeResponse.error }, "Failed to provision runtime workspace");
+      logger.error(
+        { workspaceId: workspace.id, error: runtimeResponse.error },
+        "Failed to provision runtime workspace"
+      );
       return NextResponse.json({ success: false, error: runtimeResponse.error }, { status: 500 });
     }
 

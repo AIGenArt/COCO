@@ -1,4 +1,3 @@
-import "server-only";
 import { getSupabaseServiceClient } from "../supabase/server-client";
 import { PreviewStatus, WorkspaceStatus, WorkspaceType } from "../../../types/workspace";
 
@@ -95,7 +94,11 @@ export async function updateWorkspace(workspaceId: string, updates: Record<strin
   return data as WorkspaceRecord;
 }
 
-export async function updateWorkspaceForUser(workspaceId: string, userId: string, updates: Record<string, unknown>) {
+export async function updateWorkspaceForUser(
+  workspaceId: string,
+  userId: string,
+  updates: Record<string, unknown>
+) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("workspaces")
@@ -114,4 +117,34 @@ export async function updateWorkspaceForUser(workspaceId: string, userId: string
   }
 
   return data as WorkspaceRecord;
+}
+
+export async function revokeWorkspacesByInstallationId(installationId: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update({ status: "revoked", last_activity_at: new Date().toISOString() })
+    .eq("github_installation_id", installationId)
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as WorkspaceRecord[];
+}
+
+export async function revokeWorkspacesByRepoAccessId(repoAccessId: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update({ status: "revoked", last_activity_at: new Date().toISOString() })
+    .eq("github_repo_access_id", repoAccessId)
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as WorkspaceRecord[];
 }
