@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logger } from "../../../lib/logger";
 import { validateWebhookSignature } from "../../../lib/github/github-app";
 import { insertWebhookEvent } from "../../../lib/db/github-webhook-events";
 import {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   let payload: unknown;
   try {
     payload = JSON.parse(payloadText);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
@@ -64,7 +65,6 @@ export async function POST(request: Request) {
       ? String((payloadObj.installation as Record<string, unknown>).id)
       : null;
 
-  // Persist the incoming webhook for idempotency.
   const existing = await insertWebhookEvent({
     deliveryId,
     eventType,
@@ -72,7 +72,6 @@ export async function POST(request: Request) {
     payload
   });
 
-  // If this delivery already exists, treat as success.
   if (!existing) {
     return NextResponse.json({ success: true, data: { message: "Duplicate delivery ignored." } });
   }
@@ -108,7 +107,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    // Webhooks should not be retried indefinitely; return 500 so GitHub can retry.
+    logger.error({ deliveryId, eventType, error }, "GitHub webhook handler failed");
+
     const message = error instanceof Error ? error.message : "Failed to process webhook.";
     return NextResponse.json(
       {
@@ -157,8 +157,8 @@ function normalizeRepo(raw: unknown): { owner: string; repo: string; full_name: 
     typeof ownerValue === "string"
       ? ownerValue
       : typeof ownerValue === "object" && ownerValue !== null && typeof ownerValue.login === "string"
-      ? ownerValue.login
-      : null;
+        ? ownerValue.login
+        : null;
 
   if (!owner) return null;
 
@@ -210,6 +210,5 @@ async function handleRepositoriesRemoved(installationId: string | null, reposito
 
   const deactivated = await markRepoAccessInactive(installation.id, repos);
 
-  // Revoke any workspaces that are tied to removed repos
   await Promise.all(deactivated.map((access) => revokeWorkspacesByRepoAccessId(access.id)));
 }

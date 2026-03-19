@@ -1,35 +1,38 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../lib/auth/guards";
-import { getActiveGitHubInstallationByUser } from "../../lib/db/github-installations";
-import { listActiveReposForInstallation } from "../../lib/db/github-repo-access";
+import { requireUser, unauthorizedResponse } from "../../lib/auth/guards";
+import { getGitHubDomainService } from "../../lib/github/github-domain-service";
+import { logger } from "../../lib/logger";
 
 export async function GET() {
   try {
     const user = await requireUser();
+    const result = await getGitHubDomainService().listAccessibleRepos(user.id);
 
-    const installation = await getActiveGitHubInstallationByUser(user.id);
-    if (!installation) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: "no_installation",
-            message: "No active GitHub App installation found for this user."
-          }
-        },
-        { status: 404 }
-      );
+    return NextResponse.json({
+      success: true,
+      data: {
+        repos: result.repos.map((repo) => ({
+          owner: repo.owner,
+          repo: repo.repo,
+          full_name: repo.fullName,
+          private: repo.private,
+          default_branch: repo.defaultBranch,
+          github_repo_access_id: repo.githubRepoAccessId ?? null
+        })),
+        source: result.source,
+        stale: result.stale
+      }
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return unauthorizedResponse();
     }
 
-    const repos = await listActiveReposForInstallation(installation.id);
-
-    return NextResponse.json({ success: true, data: { repos } });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to list repositories.";
+    logger.error({ error }, "Failed to list GitHub repositories");
     return NextResponse.json(
       {
         success: false,
-        error: { code: "unexpected_error", message }
+        error: { code: "github_repos_failed", message: "Failed to list repositories" }
       },
       { status: 500 }
     );
