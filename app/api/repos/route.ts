@@ -30,7 +30,10 @@ export async function GET() {
 
     logger.error({ error }, "Failed to list GitHub repositories");
     return NextResponse.json(
-      { success: false, error: { code: "github_repos_failed", message: "Failed to list repositories" } },
+      {
+        success: false,
+        error: { code: "github_repos_failed", message: "Failed to list repositories" }
+      },
       { status: 500 }
     );
   }

@@ -10,6 +10,9 @@
     "test": "rm -rf .tmp-tests && tsc -p tsconfig.tests.json && node --test .tmp-tests/app/tests/*.test.js"
   },
   "dependencies": {
+    "@octokit/app": "^16.1.2",
+    "@octokit/auth-app": "^8.2.0",
+    "@octokit/rest": "^22.0.1",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/supabase-js": "^2.99.2",
     "next": "16.2.0",
