@@ -1,1 +1,86 @@
-(IDE + preview + chat) First commit
+# COCO — AI Coding Workspace
+
+This repository is a **secure, sandboxed web-based coding workspace** with **GitHub App integration**, **Supabase Auth/DB**, and a **runtime sandbox service** for executing untrusted code.
+
+## Architecture
+
+- **Frontend**: Next.js (App Router) running on Netlify.
+- **Auth + Data**: Supabase (Auth, Postgres, Realtime, Storage).
+- **Runtime**: Separate Node.js service (sandboxed execution via Docker).
+
+## Getting Started
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Run the frontend (Next.js)
+
+```bash
+npm run dev
+```
+
+### 3) Run the runtime service
+
+```bash
+cd runtime-service
+npm run dev
+```
+
+> The runtime service exposes a simple internal API and is responsible for sandboxed workspace execution. It is **not** directly accessible from the browser.
+
+### Required Environment Variables
+
+Create a `.env.local` file in `/app` and set the following values for local development (replace with real values in prod):
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+GITHUB_APP_ID=your-github-app-id
+GITHUB_APP_CLIENT_ID=your-github-app-client-id
+GITHUB_APP_CLIENT_SECRET=your-github-app-client-secret
+GITHUB_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----..."
+GITHUB_APP_WEBHOOK_SECRET=your-webhook-secret
+
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=some-strong-secret
+
+RUNTIME_SERVICE_URL=http://localhost:4001
+RUNTIME_SERVICE_SECRET=some-random-secret
+RUNTIME_SERVICE_PORT=4001
+
+# Optional overrides
+# WORKSPACE_IDLE_TIMEOUT_MS=3600000
+# PREVIEW_PROXY_TIMEOUT_MS=15000
+```
+## Project Layout
+
+- `/app` — Next.js frontend + Netlify API routes
+- `/runtime-service` — sandbox runtime service (Docker-based)
+- `/supabase` — database migrations and edge functions
+- `/types` — shared TypeScript types
+
+## Next Steps
+
+This project is designed to be built incrementally. The current scaffolding includes:
+- Next.js app bootstrapped with TypeScript and Tailwind
+- Runtime service skeleton (Express + config)
+- Shared types and basic workspace type definitions
+
+## Documentation
+
+Before coding, **read the following files** to understand architecture, security, and operational rules:
+
+- `docs/boot.md`
+- `docs/master-prompt.md`
+- `docs/security.md`
+- `docs/rules.md`
+
+The detailed runtime and git workflow docs live in:
+
+- `docs/runtime.md`
+- `docs/git.md`

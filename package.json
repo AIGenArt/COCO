@@ -1,0 +1,14 @@
+{
+  "name": "coco",
+  "private": true,
+  "workspaces": [
+    "app",
+    "runtime-service"
+  ],
+  "scripts": {
+    "dev": "npm --prefix app run dev",
+    "build": "npm run build --workspace app && npm run build --workspace runtime-service",
+    "lint": "npm run lint --workspace app && npm run lint --workspace runtime-service",
+    "test": "npm test --workspace app && npm test --workspace runtime-service"
+  }
+}

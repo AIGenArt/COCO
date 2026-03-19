@@ -1,0 +1,28 @@
+# Node
+node_modules/
+**/node_modules/
+
+# Next
+.next/
+out/
+
+# Runtime service
+runtime-service/dist/
+
+# Logs
+logs/
+*.log
+
+# Env
+.env*
+
+# IDE
+.vscode/
+.idea/
+
+# Mac
+.DS_Store
+
+# Build
+dist/
+coverage/
