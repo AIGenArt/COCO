@@ -10,5 +10,10 @@
     "build": "npm run build --workspace app && npm run build --workspace runtime-service",
     "lint": "npm run lint --workspace app && npm run lint --workspace runtime-service",
     "test": "npm test --workspace app && npm test --workspace runtime-service"
+  },
+  "dependencies": {
+    "@octokit/app": "^16.1.2",
+    "@octokit/auth-app": "^8.2.0",
+    "@octokit/rest": "^22.0.1"
   }
 }
