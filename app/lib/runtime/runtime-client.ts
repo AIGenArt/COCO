@@ -1,8 +1,9 @@
-import { config } from "../config";
+import { getRuntimeServerConfig } from "../config/server";
 
 export type RuntimeResponse<T> = { success: boolean; data?: T; error?: { code: string; message: string } };
 
 async function runtimeFetch<T>(path: string, init?: RequestInit): Promise<RuntimeResponse<T>> {
+  const config = getRuntimeServerConfig();
   const url = new URL(path, config.RUNTIME_SERVICE_URL).toString();
 
   const res = await fetch(url, {
