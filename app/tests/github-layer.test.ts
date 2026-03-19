@@ -141,3 +141,82 @@ test("repo listing falls back to cache when GitHub is rate-limited", async () =>
   assert.equal(result.repos.length, 0);
   assert.notEqual(markedUntil, null);
 });
+
+
+test("unsupported webhook events are ignored before any DB write", async () => {
+  const { createGitHubWebhookProcessor } = await import("../lib/github/github-webhooks");
+  let insertCalls = 0;
+  const processor = createGitHubWebhookProcessor({
+    insertWebhookEvent: async () => {
+      insertCalls += 1;
+      return { inserted: true, record: null };
+    },
+    updateWebhookEventStatus: async () => undefined,
+    getInstallationByGithubInstallationId: async () => null,
+    createAuditLog: async () => undefined,
+    cacheService: {
+      markInstallationRevoked: async () => undefined,
+      markReposAdded: async () => undefined,
+      markReposRemoved: async () => undefined
+    }
+  });
+
+  const result = await processor({
+    deliveryId: "delivery-unsupported",
+    eventType: "push",
+    payload: { installation: { id: 42 } }
+  });
+
+  assert.equal(result.duplicate, false);
+  assert.equal(insertCalls, 0);
+});
+
+test("installation_repositories added event only applies added repos", async () => {
+  const { createGitHubWebhookProcessor } = await import("../lib/github/github-webhooks");
+  const addedCalls: Array<Array<{ fullName: string }>> = [];
+  let removedCalls = 0;
+
+  const processor = createGitHubWebhookProcessor({
+    insertWebhookEvent: async () => ({ inserted: true, record: null }),
+    updateWebhookEventStatus: async () => undefined,
+    getInstallationByGithubInstallationId: async () => ({
+      id: "inst_1",
+      user_id: "user_1",
+      github_installation_id: 42,
+      account_login: "octo",
+      access_type: "all",
+      is_active: true,
+      last_synced_at: null,
+      sync_status: "ok",
+      rate_limited_until: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }),
+    createAuditLog: async () => undefined,
+    cacheService: {
+      markInstallationRevoked: async () => undefined,
+      markReposAdded: async (_installationId: string, repos: Array<{ fullName: string }>) => {
+        addedCalls.push(repos);
+      },
+      markReposRemoved: async () => {
+        removedCalls += 1;
+      }
+    }
+  });
+
+  await processor({
+    deliveryId: "delivery-added-only",
+    eventType: "installation_repositories",
+    payload: {
+      installation: { id: 42 },
+      repositories_added: [
+        { name: "repo-a", full_name: "octo/repo-a", owner: { login: "octo" } },
+        { name: "repo-b", full_name: "octo/repo-b", owner: { login: "octo" } }
+      ]
+    }
+  });
+
+  assert.equal(addedCalls.length, 1);
+  assert.deepEqual(addedCalls[0].map((repo) => repo.fullName), ["octo/repo-a", "octo/repo-b"]);
+  assert.equal(removedCalls, 0);
+});
