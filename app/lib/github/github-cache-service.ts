@@ -1,3 +1,4 @@
+import "server-only";
 import {
   getActiveInstallationForUser,
   getInstallationById,
@@ -6,7 +7,8 @@ import {
   markInstallationRevoked,
   markReposAccessState,
   updateInstallationSyncState,
-  upsertInstallationRepos
+  upsertInstallationRepos,
+  upsertRepoAccessRecords
 } from "../db/github";
 import { logger } from "../logger";
 import { GitHubInstallationRecord, RepoSummary } from "./types";
@@ -74,7 +76,7 @@ export class GitHubCacheService {
   }
 
   async markReposAdded(installationId: string, repos: RepoSummary[]): Promise<void> {
-    await upsertInstallationRepos(installationId, repos, null);
+    await upsertRepoAccessRecords(installationId, repos, null);
   }
 
   async markReposRemoved(installationId: string, fullNames: string[]): Promise<void> {

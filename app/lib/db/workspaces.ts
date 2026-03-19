@@ -1,3 +1,4 @@
+import "server-only";
 import { getSupabaseServiceClient } from "../supabase/server-client";
 import { PreviewStatus, WorkspaceStatus, WorkspaceType } from "../../../types/workspace";
 

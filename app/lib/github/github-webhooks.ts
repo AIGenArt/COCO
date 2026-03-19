@@ -1,3 +1,4 @@
+import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getGitHubServerConfig } from "../config/server";
 import { createAuditLog, getInstallationByGithubInstallationId, insertWebhookEvent, updateWebhookEventStatus } from "../db/github";
@@ -29,6 +30,8 @@ type WebhookPayload = {
   repositories_removed?: Array<{ full_name: string }>;
 };
 
+const SUPPORTED_WEBHOOK_EVENTS = new Set(["installation.deleted", "installation_repositories"]);
+
 type WebhookProcessorDeps = {
   insertWebhookEvent: typeof insertWebhookEvent;
   updateWebhookEventStatus: typeof updateWebhookEventStatus;
@@ -43,6 +46,11 @@ export function createGitHubWebhookProcessor(deps: WebhookProcessorDeps) {
     eventType: string;
     payload: WebhookPayload;
   }): Promise<{ duplicate: boolean }> {
+    if (!SUPPORTED_WEBHOOK_EVENTS.has(input.eventType)) {
+      logger.info({ deliveryId: input.deliveryId, eventType: input.eventType }, "Ignoring unsupported GitHub webhook event");
+      return { duplicate: false };
+    }
+
     const summary = buildPayloadSummary(input.payload);
     const insertResult = await deps.insertWebhookEvent({
       deliveryId: input.deliveryId,

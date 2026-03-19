@@ -1,3 +1,4 @@
+import "server-only";
 import { createPrivateKey, KeyObject, sign } from "node:crypto";
 import { getGitHubServerConfig } from "../config/server";
 import { logger } from "../logger";

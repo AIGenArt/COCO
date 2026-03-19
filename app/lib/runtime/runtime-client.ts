@@ -1,3 +1,4 @@
+import "server-only";
 import { getRuntimeServerConfig } from "../config/server";
 
 export type RuntimeResponse<T> = { success: boolean; data?: T; error?: { code: string; message: string } };

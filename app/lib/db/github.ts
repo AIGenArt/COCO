@@ -1,3 +1,4 @@
+import "server-only";
 import { PostgrestError } from "@supabase/supabase-js";
 import { getSupabaseServiceClient } from "../supabase/server-client";
 import {
@@ -93,32 +94,41 @@ export async function listCachedReposForInstallation(installationId: string) {
   return (data ?? []) as GitHubRepoAccessRecord[];
 }
 
+
+export async function upsertRepoAccessRecords(installationId: string, repos: RepoSummary[], etag?: string | null): Promise<void> {
+  if (repos.length === 0) {
+    return;
+  }
+
+  const supabase = getSupabaseServiceClient();
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("github_repo_access").upsert(
+    repos.map((repo) => ({
+      installation_id: installationId,
+      owner: repo.owner,
+      repo: repo.repo,
+      full_name: repo.fullName,
+      private: repo.private,
+      default_branch: repo.defaultBranch,
+      etag: etag ?? null,
+      is_active: true,
+      last_seen_at: now,
+      updated_at: now
+    })),
+    { onConflict: "installation_id,owner,repo" }
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function upsertInstallationRepos(installationId: string, repos: RepoSummary[], etag?: string | null): Promise<void> {
   const supabase = getSupabaseServiceClient();
   const now = new Date().toISOString();
   const seenKeys = new Set(repos.map((repo) => `${repo.owner}/${repo.repo}`.toLowerCase()));
 
-  if (repos.length > 0) {
-    const { error } = await supabase.from("github_repo_access").upsert(
-      repos.map((repo) => ({
-        installation_id: installationId,
-        owner: repo.owner,
-        repo: repo.repo,
-        full_name: repo.fullName,
-        private: repo.private,
-        default_branch: repo.defaultBranch,
-        etag: etag ?? null,
-        is_active: true,
-        last_seen_at: now,
-        updated_at: now
-      })),
-      { onConflict: "installation_id,owner,repo" }
-    );
-
-    if (error) {
-      throw error;
-    }
-  }
+  await upsertRepoAccessRecords(installationId, repos, etag);
 
   const existing = await listCachedReposForInstallationAnyState(installationId);
   const toDeactivate = existing

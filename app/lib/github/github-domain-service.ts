@@ -1,3 +1,4 @@
+import "server-only";
 import { getWorkspaceByIdForUser, updateWorkspaceForUser } from "../db/workspaces";
 import { getInstallationByGithubInstallationId, getInstallationById, listCachedReposForInstallation } from "../db/github";
 import { logger } from "../logger";
