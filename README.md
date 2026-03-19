@@ -1,6 +1,10 @@
 # 🚀 COCO — Secure AI Coding Workspace
 
 <p align="center">
+  <h1>COCO</h1>
+</p>
+
+<p align="center">
   <b>Build, test, and run code safely in isolated cloud workspaces</b><br/>
   GitHub-native • Sandbox runtime • Zero-trust architecture
 </p>
