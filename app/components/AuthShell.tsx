@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSupabaseBrowserClient } from "../lib/supabase/browser-client";
+import { getSupabaseBrowserClient, isSupabaseBrowserConfigured } from "../lib/supabase/browser-client";
 
 export default function AuthShell() {
+  const authConfigured = isSupabaseBrowserConfigured();
   const [user, setUser] = useState<null | { id: string; email?: string | null }>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(authConfigured);
 
   useEffect(() => {
+    if (!authConfigured) {
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
 
     async function load() {
@@ -28,20 +33,36 @@ export default function AuthShell() {
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, []);
+  }, [authConfigured]);
 
   const signIn = async () => {
+    if (!authConfigured) {
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({ provider: "github" });
   };
 
   const signOut = async () => {
+    if (!authConfigured) {
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
   };
 
   if (loading) {
     return <div>Loading…</div>;
+  }
+
+  if (!authConfigured) {
+    return (
+      <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        Authentication is not configured yet. Add the public Supabase environment variables to enable sign-in.
+      </div>
+    );
   }
 
   return (

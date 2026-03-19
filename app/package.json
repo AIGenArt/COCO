@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "rm -rf .tmp-tests && tsc -p tsconfig.tests.json && mkdir -p .tmp-tests/app/node_modules/server-only && printf \"module.exports = {};\\n\" > .tmp-tests/app/node_modules/server-only/index.js && node --test .tmp-tests/app/tests/*.test.js"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.15.0",
