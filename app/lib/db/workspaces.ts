@@ -1,5 +1,5 @@
 import { getSupabaseServiceClient } from "../supabase/server-client";
-import { Workspace, WorkspaceStatus, PreviewStatus, WorkspaceType } from "../../../types/workspace";
+import { PreviewStatus, WorkspaceStatus, WorkspaceType } from "../../../types/workspace";
 
 export type WorkspaceCreateInput = {
   userId: string;
@@ -7,6 +7,22 @@ export type WorkspaceCreateInput = {
   name: string;
   githubInstallationId?: string | null;
   githubRepoAccessId?: string | null;
+};
+
+export type WorkspaceRecord = {
+  id: string;
+  user_id: string;
+  name: string;
+  github_installation_id: string | null;
+  github_repo_access_id: string | null;
+  type: WorkspaceType;
+  status: WorkspaceStatus;
+  preview_status: PreviewStatus;
+  runtime_workspace_id: string | null;
+  port: number | null;
+  created_at: string;
+  last_activity_at: string;
+  stopped_at: string | null;
 };
 
 export async function createWorkspace(input: WorkspaceCreateInput) {
@@ -32,22 +48,18 @@ export async function createWorkspace(input: WorkspaceCreateInput) {
     throw error;
   }
 
-  return data as Workspace;
+  return data as WorkspaceRecord;
 }
 
 export async function getWorkspaceById(workspaceId: string) {
   const supabase = getSupabaseServiceClient();
-  const { data, error } = await supabase
-    .from("workspaces")
-    .select("*")
-    .eq("id", workspaceId)
-    .single();
+  const { data, error } = await supabase.from("workspaces").select("*").eq("id", workspaceId).maybeSingle();
 
-  if (error) {
+  if (error && error.code !== "PGRST116") {
     throw error;
   }
 
-  return data as Workspace | null;
+  return (data as WorkspaceRecord | null) ?? null;
 }
 
 export async function updateWorkspace(workspaceId: string, updates: Record<string, unknown>) {
@@ -63,5 +75,5 @@ export async function updateWorkspace(workspaceId: string, updates: Record<strin
     throw error;
   }
 
-  return data as Workspace;
+  return data as WorkspaceRecord;
 }

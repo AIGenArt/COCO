@@ -12,13 +12,20 @@ const OpenWorkspaceRequest = z.object({
   githubRepoAccessId: z.string().optional()
 });
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Failed to open workspace";
+}
+
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
     const body = await request.json();
     const input = OpenWorkspaceRequest.parse(body);
 
-    // Create a workspace record
     const workspace = await createWorkspace({
       userId: user.id,
       type: input.type,
@@ -27,7 +34,6 @@ export async function POST(request: Request) {
       githubRepoAccessId: input.githubRepoAccessId ?? null
     });
 
-    // Create an operation record for auditing
     await createWorkspaceOperation({
       workspaceId: workspace.id,
       userId: user.id,
@@ -36,20 +42,21 @@ export async function POST(request: Request) {
       metadata: { type: input.type }
     });
 
-    // Ask runtime service to provision a sandbox
     const runtimeResponse = await createRuntimeWorkspace(workspace.id);
     if (!runtimeResponse.success) {
       return NextResponse.json({ success: false, error: runtimeResponse.error }, { status: 500 });
     }
 
-    // Update workspace with runtime sandbox id
     const updatedWorkspace = await updateWorkspace(workspace.id, {
       runtime_workspace_id: runtimeResponse.data?.sandboxId ?? null,
       status: "created"
     });
 
     return NextResponse.json({ success: true, data: updatedWorkspace });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: { code: "invalid_request", message: error?.message ?? "Failed to open workspace" } }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { success: false, error: { code: "invalid_request", message: getErrorMessage(error) } },
+      { status: 400 }
+    );
   }
 }
