@@ -51,16 +51,12 @@ export async function POST(request: Request) {
       ? String((payloadObj.installation as Record<string, unknown>).id)
       : null;
 
-  const existing = await insertWebhookEvent({
-    deliveryId,
-    eventType,
-    installationId,
-    payload
-  });
-
-  if (!existing) {
-    return NextResponse.json({ success: true, data: { message: "Duplicate delivery ignored." } });
-  }
+const existing = await insertWebhookEvent({
+  deliveryId,
+  eventType,
+  installationId,
+  payload: payloadObj
+});
 
   try {
     const action =
