@@ -1,9 +1,10 @@
+import "server-only";
 import crypto from "crypto";
 import { Octokit } from "@octokit/rest";
 import { App } from "@octokit/app";
 import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "../logger";
-import { config } from "../config";
+import { getGitHubServerConfig } from "../config/server";
 
 export interface GitHubAppTokenResponse {
   token: string;
@@ -21,6 +22,7 @@ export function normalizePrivateKey(privateKey: string) {
 
 export async function createAppAuthenticatedClient(installationId?: number) {
   try {
+    const config = getGitHubServerConfig();
     const privateKey = normalizePrivateKey(config.GITHUB_APP_PRIVATE_KEY);
 
     const app = new App({
@@ -50,6 +52,7 @@ export async function createAppAuthenticatedClient(installationId?: number) {
 
 export async function getInstallationToken(installationId: number): Promise<GitHubAppTokenResponse> {
   try {
+    const config = getGitHubServerConfig();
     const privateKey = normalizePrivateKey(config.GITHUB_APP_PRIVATE_KEY);
 
     const octokit = new Octokit({
@@ -78,6 +81,7 @@ export async function getInstallationToken(installationId: number): Promise<GitH
 
 export function validateWebhookSignature(payload: string | Buffer, signature: string) {
   try {
+    const config = getGitHubServerConfig();
     const hmac = crypto.createHmac("sha256", config.GITHUB_APP_WEBHOOK_SECRET);
     hmac.update(payload);
     const expectedSignature = "sha256=" + hmac.digest("hex");
@@ -99,6 +103,7 @@ export function createOctokitWithToken(token: string) {
 
 export async function getAppInstallation(owner: string, repo: string) {
   try {
+    const config = getGitHubServerConfig();
     const privateKey = normalizePrivateKey(config.GITHUB_APP_PRIVATE_KEY);
 
     const octokit = new Octokit({
@@ -123,6 +128,7 @@ export async function getAppInstallation(owner: string, repo: string) {
 
 export function createGitHubApp() {
   try {
+    const config = getGitHubServerConfig();
     const privateKey = normalizePrivateKey(config.GITHUB_APP_PRIVATE_KEY);
 
     return new App({
