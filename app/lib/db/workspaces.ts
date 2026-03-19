@@ -65,3 +65,33 @@ export async function updateWorkspace(workspaceId: string, updates: Record<strin
 
   return data as Workspace;
 }
+
+export async function revokeWorkspacesByInstallationId(installationId: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update({ status: "revoked", last_activity_at: new Date().toISOString() })
+    .eq("github_installation_id", installationId)
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Workspace[];
+}
+
+export async function revokeWorkspacesByRepoAccessId(repoAccessId: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update({ status: "revoked", last_activity_at: new Date().toISOString() })
+    .eq("github_repo_access_id", repoAccessId)
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Workspace[];
+}

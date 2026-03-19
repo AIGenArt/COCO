@@ -54,6 +54,20 @@ create policy "GitHub repo access: installation owner" on github_repo_access
     )
   );
 
+-- GitHub webhook events (for idempotency and audit)
+create table if not exists github_webhook_events (
+  id uuid primary key default gen_random_uuid(),
+  delivery_id text not null unique,
+  event_type text not null,
+  installation_id bigint,
+  payload jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+alter table github_webhook_events enable row level security;
+create policy "GitHub webhook events: service role" on github_webhook_events
+  for all using (auth.role() = 'service_role');
+
 -- Workspaces
 create table if not exists workspaces (
   id uuid primary key default gen_random_uuid(),

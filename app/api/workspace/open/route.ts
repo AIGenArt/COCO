@@ -49,7 +49,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, data: updatedWorkspace });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: { code: "invalid_request", message: error?.message ?? "Failed to open workspace" } }, { status: 400 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to open workspace";
+    return NextResponse.json({ success: false, error: { code: "invalid_request", message } }, { status: 400 });
   }
 }
