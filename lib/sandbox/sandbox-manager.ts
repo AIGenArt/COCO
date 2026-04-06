@@ -182,6 +182,10 @@ export class SandboxManager {
    * Only after healthcheck passes
    */
   static async markPreviewReady(sandboxId: string): Promise<void> {
+    console.log('[Preview Ready] ========================================');
+    console.log('[Preview Ready] markPreviewReady called for sandbox:', sandboxId);
+    console.log('[Preview Ready] Timestamp:', new Date().toISOString());
+    
     const supabase = await createClient();
 
     // Verify sandbox is running
@@ -191,25 +195,43 @@ export class SandboxManager {
       .eq('id', sandboxId)
       .single();
 
+    console.log('[Preview Ready] Current sandbox status:', sandbox?.status);
+    console.log('[Preview Ready] Workspace ID:', sandbox?.workspace_id);
+
     if (!sandbox || sandbox.status !== 'running') {
+      console.error('[Preview Ready] ✗ Cannot mark preview ready - sandbox not running');
       throw new Error('Sandbox must be running to mark preview ready');
     }
 
     // Update preview_ready
-    const { error } = await supabase
+    console.log('[Preview Ready] Updating database...');
+    const { error, data: updated } = await supabase
       .from('sandbox_instances')
       .update({
         preview_ready: true,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', sandboxId);
+      .eq('id', sandboxId)
+      .select()
+      .single();
 
     if (error) {
+      console.error('[Preview Ready] ✗ Database update failed:', error);
       throw new Error(`Failed to mark preview ready: ${error.message}`);
     }
 
+    console.log('[Preview Ready] ✓ Database updated successfully');
+    console.log('[Preview Ready] Updated sandbox:', {
+      id: updated?.id,
+      status: updated?.status,
+      preview_ready: updated?.preview_ready,
+    });
+
     // Log event
     await this.logEvent(sandboxId, sandbox.workspace_id, 'sandbox_ready', 'info', 'Preview is ready');
+    
+    console.log('[Preview Ready] ✓ Event logged');
+    console.log('[Preview Ready] ========================================');
   }
 
   /**

@@ -66,6 +66,15 @@ export function useSandboxStatus({
       const data = await response.json();
       const fetchedSandbox = data.sandbox as SandboxInstance;
       
+      // Log what we received
+      console.log('[Frontend Polling] Received sandbox state:', {
+        id: fetchedSandbox.id,
+        status: fetchedSandbox.status,
+        preview_ready: fetchedSandbox.preview_ready,
+        container_id: fetchedSandbox.container_id,
+        port: fetchedSandbox.port,
+      });
+      
       // Reset retry count on success
       retryCountRef.current = 0;
       setError(null);
