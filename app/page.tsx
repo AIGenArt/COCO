@@ -1,9 +1,23 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Code2, Sparkles, Zap, GitBranch, Database, Shield } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ArrowRight,
+  Code2,
+  Sparkles,
+  Zap,
+  GitBranch,
+  Database,
+  Shield,
+} from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -35,19 +49,21 @@ export default function LandingPage() {
             <Sparkles className="w-4 h-4" />
             AI-Powered Development Platform
           </div>
-          
+
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
             Build Applications with
-            <span className="block gradient-primary bg-clip-text text-transparent">
+            <span className="gradient-primary flex items-center justify-center bg-clip-text p-2.5 text-transparent">
               AI-Driven Intelligence
+              <design-placeholder></design-placeholder>
             </span>
           </h1>
-          
+
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Transform your ideas into production-ready applications. COCO combines AI planning, 
-            intelligent code generation, and seamless deployment in one professional platform.
+            Transform your ideas into production-ready applications. COCO
+            combines AI planning, intelligent code generation, and seamless
+            deployment in one professional platform.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Button size="lg" className="gap-2" asChild>
               <Link href="/auth/sign-up">
@@ -56,12 +72,10 @@ export default function LandingPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/dashboard">
-                View Demo
-              </Link>
+              <Link href="/dashboard">View Demo</Link>
             </Button>
           </div>
-          
+
           <div className="pt-8 text-sm text-muted-foreground">
             No credit card required • 2 free projects • Deploy in minutes
           </div>
@@ -75,7 +89,8 @@ export default function LandingPage() {
             Professional Development, Simplified
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to build, deploy, and scale modern web applications
+            Everything you need to build, deploy, and scale modern web
+            applications
           </p>
         </div>
 
@@ -88,8 +103,9 @@ export default function LandingPage() {
               </div>
               <CardTitle>AI Planning Mode</CardTitle>
               <CardDescription>
-                Describe your vision and let AI create a detailed blueprint with architecture diagrams, 
-                database schemas, and implementation plans.
+                Describe your vision and let AI create a detailed blueprint with
+                architecture diagrams, database schemas, and implementation
+                plans.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -102,8 +118,9 @@ export default function LandingPage() {
               </div>
               <CardTitle>Intelligent Build Mode</CardTitle>
               <CardDescription>
-                Watch as AI generates production-ready code, creates database tables, 
-                and implements features with real-time progress tracking.
+                Watch as AI generates production-ready code, creates database
+                tables, and implements features with real-time progress
+                tracking.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -116,8 +133,9 @@ export default function LandingPage() {
               </div>
               <CardTitle>Professional IDE</CardTitle>
               <CardDescription>
-                Full-featured Monaco editor with IntelliSense, syntax highlighting, 
-                and multi-file support for a VS Code-like experience.
+                Full-featured Monaco editor with IntelliSense, syntax
+                highlighting, and multi-file support for a VS Code-like
+                experience.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -130,8 +148,8 @@ export default function LandingPage() {
               </div>
               <CardTitle>GitHub Integration</CardTitle>
               <CardDescription>
-                Commit directly to your repositories, manage branches, 
-                and deploy with a single click. Full version control built-in.
+                Commit directly to your repositories, manage branches, and
+                deploy with a single click. Full version control built-in.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -144,7 +162,7 @@ export default function LandingPage() {
               </div>
               <CardTitle>Database Management</CardTitle>
               <CardDescription>
-                AI can create and manage your Supabase database schema, 
+                AI can create and manage your Supabase database schema,
                 including tables, RLS policies, and migrations.
               </CardDescription>
             </CardHeader>
@@ -158,8 +176,8 @@ export default function LandingPage() {
               </div>
               <CardTitle>Enterprise Security</CardTitle>
               <CardDescription>
-                Built-in authentication, row-level security, and secure sandboxed 
-                execution environment for all your projects.
+                Built-in authentication, row-level security, and secure
+                sandboxed execution environment for all your projects.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -173,7 +191,8 @@ export default function LandingPage() {
             From Idea to Production in Minutes
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Our AI-powered workflow makes professional development accessible to everyone
+            Our AI-powered workflow makes professional development accessible to
+            everyone
           </p>
         </div>
 
@@ -184,9 +203,12 @@ export default function LandingPage() {
               1
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Describe Your Vision</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Describe Your Vision
+              </h3>
               <p className="text-muted-foreground">
-                Tell COCO what you want to build in natural language. Be as detailed or high-level as you like.
+                Tell COCO what you want to build in natural language. Be as
+                detailed or high-level as you like.
               </p>
             </div>
           </div>
@@ -197,10 +219,12 @@ export default function LandingPage() {
               2
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Review AI Blueprint</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Review AI Blueprint
+              </h3>
               <p className="text-muted-foreground">
-                AI analyzes your requirements and creates a detailed plan with architecture diagrams, 
-                database schemas, and file structures.
+                AI analyzes your requirements and creates a detailed plan with
+                architecture diagrams, database schemas, and file structures.
               </p>
             </div>
           </div>
@@ -213,8 +237,9 @@ export default function LandingPage() {
             <div>
               <h3 className="text-xl font-semibold mb-2">Watch It Build</h3>
               <p className="text-muted-foreground">
-                Approve the plan and watch as AI generates code, creates databases, 
-                and implements features with real-time progress updates.
+                Approve the plan and watch as AI generates code, creates
+                databases, and implements features with real-time progress
+                updates.
               </p>
             </div>
           </div>
@@ -227,8 +252,8 @@ export default function LandingPage() {
             <div>
               <h3 className="text-xl font-semibold mb-2">Deploy & Iterate</h3>
               <p className="text-muted-foreground">
-                Preview your application live, make changes through AI chat, 
-                and deploy directly to GitHub when ready.
+                Preview your application live, make changes through AI chat, and
+                deploy directly to GitHub when ready.
               </p>
             </div>
           </div>
@@ -251,10 +276,13 @@ export default function LandingPage() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" asChild>
-              <Link href="/dashboard">
-                View Demo
-              </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              asChild
+            >
+              <Link href="/dashboard">View Demo</Link>
             </Button>
           </div>
         </div>
@@ -275,35 +303,71 @@ export default function LandingPage() {
                 AI-powered development platform for modern web applications
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/features" className="hover:text-foreground">Features</Link></li>
-                <li><Link href="/pricing" className="hover:text-foreground">Pricing</Link></li>
-                <li><Link href="/docs" className="hover:text-foreground">Documentation</Link></li>
+                <li>
+                  <Link href="/features" className="hover:text-foreground">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="hover:text-foreground">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/docs" className="hover:text-foreground">
+                    Documentation
+                  </Link>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/about" className="hover:text-foreground">About</Link></li>
-                <li><Link href="/blog" className="hover:text-foreground">Blog</Link></li>
-                <li><Link href="/careers" className="hover:text-foreground">Careers</Link></li>
+                <li>
+                  <Link href="/about" className="hover:text-foreground">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="hover:text-foreground">
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/careers" className="hover:text-foreground">
+                    Careers
+                  </Link>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/privacy" className="hover:text-foreground">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-foreground">Terms</Link></li>
-                <li><Link href="/security" className="hover:text-foreground">Security</Link></li>
+                <li>
+                  <Link href="/privacy" className="hover:text-foreground">
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-foreground">
+                    Terms
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/security" className="hover:text-foreground">
+                    Security
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
             © 2026 COCO. All rights reserved.
           </div>

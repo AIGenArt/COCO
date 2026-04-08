@@ -15,19 +15,21 @@ interface UseSandboxStatusOptions {
 }
 
 // Unstable states that require polling
+// Poll until sandbox reaches 'ready' status
 const UNSTABLE_STATES: SandboxStatus[] = [
   'creating',
+  'bootstrapping',
   'starting',
-  'running',  // Keep polling until preview_ready = true
-  'stopping',
-  'destroying',
+  'running',  // Poll until 'ready'
 ];
 
-// Stable states where polling should stop
+// Stable/terminal states where polling should stop
 const STABLE_STATES: SandboxStatus[] = [
-  'stopped',
+  'ready',      // Terminal success state
+  'stopping',
+  'terminated',
   'failed',
-  'destroyed',
+  'replaced',
 ];
 
 // Dynamic polling intervals based on state
@@ -94,7 +96,7 @@ export function useSandboxStatus({
       // 2. Status is 'running' but preview is not ready yet
       const shouldContinuePolling = 
         UNSTABLE_STATES.includes(fetchedSandbox.status) ||
-        (fetchedSandbox.status === 'running' && !fetchedSandbox.preview_ready);
+        (fetchedSandbox.status === 'running' && fetchedSandbox.preview_ready !== true);
       
       if (shouldContinuePolling) {
         // Schedule next poll with appropriate interval
@@ -105,7 +107,12 @@ export function useSandboxStatus({
         }, interval);
       } else {
         // Stable state reached - stop polling
-        console.log(`Sandbox ${sandboxId} reached stable state: ${fetchedSandbox.status}, preview_ready: ${fetchedSandbox.preview_ready}`);
+        console.log('[Polling] ========================================');
+        console.log('[Polling] Stable sandbox reached, stopping polling');
+        console.log('[Polling] Status:', fetchedSandbox.status);
+        console.log('[Polling] Preview Ready:', fetchedSandbox.preview_ready);
+        console.log('[Polling] Container ID:', fetchedSandbox.container_id);
+        console.log('[Polling] ========================================');
         setIsPolling(false);
       }
 

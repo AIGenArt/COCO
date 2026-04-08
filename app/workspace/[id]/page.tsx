@@ -34,9 +34,9 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
 
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
-  const [sandboxId, setSandboxId] = useState<string | null>(null);
+  const [activeSandboxId, setActiveSandboxId] = useState<string | null>(null);
   const [isCreatingSandbox, setIsCreatingSandbox] = useState(false);
-  const [sandboxStatus, setSandboxStatus] = useState<'loading' | 'starting' | 'running' | 'failed'>('loading');
+  const [sandboxStatus, setSandboxStatus] = useState<'loading' | 'bootstrapping' | 'starting' | 'running' | 'ready' | 'failed'>('loading');
   const [error, setError] = useState<string | null>(null);
 
   // CRITICAL: Prevent double init from React Strict Mode
@@ -65,21 +65,45 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
     );
   }
 
-  // Sandbox status polling
+  // Sandbox status polling (ONLY for active sandbox)
   const { sandbox, isPolling, error: sandboxError } = useSandboxStatus({
-    sandboxId,
-    enabled: !!sandboxId,
+    sandboxId: activeSandboxId,
+    enabled: !!activeSandboxId,
     onStatusChange: (updatedSandbox: SandboxInstance) => {
-      console.log('Sandbox status changed:', updatedSandbox.status);
+      console.log('[UI Gating] ========================================');
+      console.log('[UI Gating] Sandbox status changed:', updatedSandbox.status);
+      console.log('[UI Gating] Preview ready:', updatedSandbox.preview_ready);
+      console.log('[UI Gating] Sandbox ID:', updatedSandbox.id);
+      console.log('[UI Gating] Active sandbox ID:', activeSandboxId);
+      
+      // Update UI status based on sandbox state
+      if (updatedSandbox.status === 'ready' && updatedSandbox.preview_ready) {
+        console.log('[UI Gating] ✓ Sandbox is READY - showing preview');
+        setSandboxStatus('ready');
+      } else if (updatedSandbox.status === 'running') {
+        console.log('[UI Gating] Sandbox running but not ready yet');
+        setSandboxStatus('running');
+      } else if (updatedSandbox.status === 'starting') {
+        setSandboxStatus('starting');
+      } else if (updatedSandbox.status === 'bootstrapping') {
+        setSandboxStatus('bootstrapping');
+      } else if (updatedSandbox.status === 'failed') {
+        console.log('[UI Gating] ✗ Sandbox failed');
+        setSandboxStatus('failed');
+      }
+      
+      console.log('[UI Gating] UI status set to:', sandboxStatus);
+      console.log('[UI Gating] ========================================');
     },
   });
 
-  // Sandbox heartbeat (only when running)
+  // Sandbox heartbeat (ONLY for ready sandbox)
   useSandboxHeartbeat({
-    sandboxId,
+    sandboxId: activeSandboxId,
     workspaceId: workspaceId || '',
     status: sandbox?.status || null,
-    enabled: !!sandboxId && !!workspaceId,
+    previewReady: sandbox?.preview_ready,
+    enabled: !!activeSandboxId && !!workspaceId,
   });
 
   // Auto-save integration
@@ -129,7 +153,7 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
       }
 
       const data = await response.json();
-      setSandboxId(data.sandbox.id);
+      setActiveSandboxId(data.sandbox.id);
 
       // 3. Start sandbox
       await handleStartSandbox(data.sandbox.id);
@@ -144,7 +168,7 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
 
   // Start sandbox
   const handleStartSandbox = async (id?: string) => {
-    const targetId = id || sandboxId;
+    const targetId = id || activeSandboxId;
     if (!targetId) return;
 
     try {
@@ -166,10 +190,10 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
 
   // Stop sandbox
   const handleStopSandbox = async () => {
-    if (!sandboxId) return;
+    if (!activeSandboxId) return;
 
     try {
-      const response = await fetch(`/api/sandboxes/${sandboxId}/stop`, {
+      const response = await fetch(`/api/sandboxes/${activeSandboxId}/stop`, {
         method: 'POST',
       });
 
@@ -229,8 +253,9 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
         console.log('[Workspace] ✓ Sandbox created:', data.sandbox.id);
         console.log('[Workspace] Status:', data.sandbox.status);
         
-        // Set sandbox ID for polling
-        setSandboxId(data.sandbox.id);
+        // Set active sandbox ID for polling
+        console.log('[Workspace] Setting active sandbox ID:', data.sandbox.id);
+        setActiveSandboxId(data.sandbox.id);
         setSandboxStatus('starting');
 
       } catch (error) {
@@ -292,18 +317,25 @@ export default function WorkspacePage({ params }: { params: { id: string } }) {
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Loading/Error Overlay */}
-      {(sandboxStatus === 'loading' || sandboxStatus === 'starting') && (
+      {(sandboxStatus === 'loading' || sandboxStatus === 'bootstrapping' || sandboxStatus === 'starting' || sandboxStatus === 'running') && (
         <div className="absolute inset-0 bg-[#0B0F14]/90 z-50 flex items-center justify-center">
           <div className="text-center space-y-4">
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
             <div>
               <h2 className="text-xl font-semibold text-white">
-                {sandboxStatus === 'loading' ? 'Creating workspace...' : 'Starting dev server...'}
+                {sandboxStatus === 'loading' && 'Creating sandbox...'}
+                {sandboxStatus === 'bootstrapping' && 'Validating workspace...'}
+                {sandboxStatus === 'starting' && 'Installing dependencies...'}
+                {sandboxStatus === 'running' && 'Starting dev server...'}
               </h2>
               <p className="text-gray-400 mt-2">
-                {sandboxStatus === 'loading' 
-                  ? 'Extracting template and installing dependencies...' 
-                  : 'This may take a minute...'}
+                {sandboxStatus === 'loading' && 'Setting up your development environment...'}
+                {sandboxStatus === 'bootstrapping' && 'Checking project structure...'}
+                {sandboxStatus === 'starting' && 'Running npm install...'}
+                {sandboxStatus === 'running' && 'Waiting for preview to be ready...'}
+              </p>
+              <p className="text-gray-500 text-xs mt-4">
+                Status: {sandboxStatus} | Sandbox ID: {activeSandboxId || 'pending'}
               </p>
             </div>
           </div>

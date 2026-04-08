@@ -6,25 +6,31 @@
  */
 
 /**
- * Sandbox Status - Controlled state machine
+ * Sandbox Status - Production-grade state machine
  * 
  * Valid transitions:
- * - creating → starting → running
- * - running → stopping → stopped
- * - running → failed
- * - stopped → starting (restart)
- * - stopped/failed → destroying → destroyed
- * - Any state → failed (on error)
+ * - creating → bootstrapping → starting → running → ready
+ * - ready → stopping → terminated
+ * - ready → replaced (when new sandbox becomes active)
+ * - Any operational state → failed (on error)
+ * 
+ * CRITICAL: Only 'ready' status may be previewed in UI or heartbeated
  */
 export type SandboxStatus =
-  | 'creating'    // Initial state - sandbox being provisioned
-  | 'starting'    // Starting up (installing deps, booting server)
-  | 'running'     // Active and healthy
-  | 'stopping'    // Graceful shutdown in progress
-  | 'stopped'     // Cleanly stopped
-  | 'failed'      // Error state
-  | 'destroying'  // Being torn down
-  | 'destroyed';  // Fully cleaned up
+  | 'creating'       // Provider sandbox being created
+  | 'bootstrapping'  // Files/materialization/validation
+  | 'starting'       // Dependencies + dev server start
+  | 'running'        // Sandbox alive, app not yet verified
+  | 'ready'          // Preview health verified, safe for UI/heartbeat
+  | 'stopping'       // Intentional shutdown
+  | 'terminated'     // Ended normally or removed
+  | 'failed'         // Unrecoverable start/bootstrap/runtime failure
+  | 'replaced';      // Old sandbox superseded by new active sandbox
+
+/**
+ * Bootstrap mode - How workspace source is materialized
+ */
+export type BootstrapMode = 'template' | 'repo';
 
 /**
  * Sandbox instance data structure
@@ -36,6 +42,9 @@ export interface SandboxInstance {
   container_id: string | null;
   port: number | null;
   preview_ready: boolean;
+  preview_url: string | null;
+  bootstrap_mode: BootstrapMode | null;
+  replaced_by_sandbox_id: string | null;
   last_seen_at: string | null;
   started_at: string | null;
   stopped_at: string | null;
@@ -45,16 +54,31 @@ export interface SandboxInstance {
 }
 
 /**
+ * Workspace with active sandbox reference
+ */
+export interface Workspace {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  active_sandbox_id: string | null;  // SINGLE SOURCE OF TRUTH
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * Sandbox event types - Only centrale events
  */
 export type SandboxEventType =
   | 'sandbox_created'
+  | 'sandbox_bootstrapping'
   | 'sandbox_starting'
   | 'sandbox_started'
   | 'sandbox_ready'      // Preview is ready
   | 'sandbox_stopping'
   | 'sandbox_stopped'
   | 'sandbox_failed'
+  | 'sandbox_replaced'   // Superseded by new sandbox
   | 'sandbox_destroying'
   | 'sandbox_destroyed'
   | 'heartbeat_missed'   // Stale detection
@@ -64,19 +88,21 @@ export type SandboxEventType =
  * Valid state transitions
  * 
  * Rules:
- * - failed only from operational states (creating, starting, running, stopping, destroying)
- * - destroyed is terminal (no transitions out)
- * - stopped can restart (stopped → starting) or be cleaned up (stopped → destroying)
+ * - Only 'ready' may be previewed or heartbeated
+ * - 'replaced' is for old sandboxes superseded by new active sandbox
+ * - 'terminated' is normal end state
+ * - 'failed' is error end state
  */
 export const VALID_TRANSITIONS: Record<SandboxStatus, SandboxStatus[]> = {
-  creating: ['starting', 'failed', 'destroying'],
-  starting: ['running', 'failed', 'destroying'],
-  running: ['stopping', 'failed', 'destroying'],
-  stopping: ['stopped', 'failed', 'destroying'],
-  stopped: ['starting', 'destroying'], // Can restart or be destroyed
-  failed: ['destroying'], // Failed must be cleaned up, cannot go to destroyed directly
-  destroying: ['destroyed', 'failed'], // Can fail during destruction
-  destroyed: [], // Terminal state
+  creating: ['bootstrapping', 'failed'],
+  bootstrapping: ['starting', 'failed'],
+  starting: ['running', 'failed'],
+  running: ['ready', 'failed', 'terminated'],
+  ready: ['stopping', 'failed', 'replaced', 'terminated'],
+  stopping: ['terminated', 'failed'],
+  terminated: ['replaced'], // Can be marked as replaced after termination
+  failed: ['replaced'],     // Can be marked as replaced after failure
+  replaced: [],             // Terminal state
 };
 
 /**
@@ -96,6 +122,7 @@ export interface SandboxConfig {
   workspaceId: string;
   template?: string;
   port?: number;
+  bootstrapMode?: BootstrapMode;
 }
 
 /**
@@ -111,6 +138,22 @@ export const HEARTBEAT_CONFIG = {
  * Sandbox limits
  */
 export const SANDBOX_LIMITS = {
-  MAX_ACTIVE_PER_WORKSPACE: 1, // MVP: Only one active sandbox per workspace
+  MAX_ACTIVE_PER_WORKSPACE: 1, // Only one active sandbox per workspace
   MAX_LIFETIME_MS: 3600000,    // 1 hour max lifetime
 } as const;
+
+/**
+ * Bootstrap validation result
+ */
+export interface BootstrapValidationResult {
+  ok: boolean;
+  missing: string[];
+  details?: string[];
+}
+
+/**
+ * Preview health result
+ */
+export type PreviewHealthResult =
+  | { status: 'ready'; statusCode: number }
+  | { status: 'unhealthy'; statusCode?: number; error: string };
