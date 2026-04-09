@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -26,7 +26,7 @@ export async function GET(
       );
     }
 
-    const sandboxId = params.id;
+    const { id: sandboxId } = await params;
 
     // Get sandbox with workspace info
     const { data: sandbox, error: sandboxError } = await supabase
@@ -75,7 +75,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -89,7 +89,7 @@ export async function DELETE(
       );
     }
 
-    const sandboxId = params.id;
+    const { id: sandboxId } = await params;
     
     // Check if we should also delete the workspace
     const { searchParams } = new URL(request.url);

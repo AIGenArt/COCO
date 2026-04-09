@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SandboxManager } from '@/lib/sandbox/sandbox-manager';
 import { E2BManager } from '@/lib/sandbox/e2b-manager';
+import { bootstrapWorkspace } from '@/lib/sandbox/ai-workspace-bootstrap';
 import { normalizePreviewUrl } from '@/lib/sandbox/preview-url';
 import { checkPreviewHealth } from '@/lib/sandbox/preview-health';
 import { replaceSandbox, getActiveSandbox } from '@/lib/sandbox/lifecycle-service';
@@ -138,6 +139,24 @@ export async function POST(request: NextRequest) {
       console.log('[Create] Step 3: Bootstrapping workspace...');
       await SandboxManager.transitionStatus(sandboxInstance.id, 'bootstrapping');
       
+      // Bootstrap the workspace with template files
+      console.log('[Create] Bootstrapping workspace files...');
+      const bootstrapResult = await bootstrapWorkspace(e2bSandbox.id, workspaceId);
+      if (!bootstrapResult.success) {
+        console.error('[Create] ✗ Bootstrap failed:', bootstrapResult.error);
+        await SandboxManager.transitionStatus(
+          sandboxInstance.id,
+          'failed',
+          `Bootstrap failed: ${bootstrapResult.error}`
+        );
+        await E2BManager.destroySandbox(e2bSandbox.id);
+        return NextResponse.json(
+          { error: 'Failed to bootstrap workspace', details: bootstrapResult.error },
+          { status: 500 }
+        );
+      }
+      console.log('[Create] ✓ Bootstrap successful');
+
       // Create filesystem interface for validation
       const fs: SandboxFilesystem = {
         exists: async (path: string) => {

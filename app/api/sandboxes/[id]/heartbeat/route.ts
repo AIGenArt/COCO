@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -28,7 +28,7 @@ export async function POST(
       );
     }
 
-    const sandboxId = params.id;
+    const { id: sandboxId } = await params;
 
     // Get sandbox with workspace info
     const { data: sandbox, error: sandboxError } = await supabase

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Guard 1: Require user
@@ -29,7 +29,7 @@ export async function POST(
     }
     
     // Get planned action
-    const actionId = params.id;
+    const { id: actionId } = await params;
     const plannedAction = getPlannedAction(actionId);
     
     if (!plannedAction) {
@@ -111,7 +111,7 @@ export async function POST(
 // Reject endpoint
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Guard 1: Require user
@@ -132,7 +132,7 @@ export async function DELETE(
     }
     
     // Get planned action
-    const actionId = params.id;
+    const { id: actionId } = await params;
     const plannedAction = getPlannedAction(actionId);
     
     if (!plannedAction) {

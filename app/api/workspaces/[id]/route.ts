@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 // GET /api/workspaces/[id] - Get a single workspace
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch workspace and verify ownership
     const { data: workspace, error } = await supabase
@@ -66,7 +66,7 @@ export async function GET(
 // PATCH /api/workspaces/[id] - Partial update workspace metadata (for AutoSave)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -81,7 +81,7 @@ export async function PATCH(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Verify workspace exists and user owns it
     const { data: existingWorkspace, error: fetchError } = await supabase
@@ -242,7 +242,7 @@ export async function PUT(
 // DELETE /api/workspaces/[id] - Delete workspace with controlled sequence
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -257,7 +257,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Verify workspace exists and user owns it
     const { data: workspace, error: fetchError } = await supabase

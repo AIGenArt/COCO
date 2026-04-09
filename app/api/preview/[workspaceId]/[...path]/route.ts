@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { workspaceId: string; path: string[] } }
+  { params }: { params: Promise<{ workspaceId: string; path: string[] }> }
 ) {
   try {
     const supabase = await createClient();
@@ -22,7 +22,7 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const workspaceId = params.workspaceId;
+    const { workspaceId, path } = await params;
 
     // Verify workspace ownership
     const { data: workspace, error: workspaceError } = await supabase
@@ -44,7 +44,7 @@ export async function GET(
     }
 
     // Build target URL
-    const targetPath = params.path ? params.path.join('/') : '';
+    const targetPath = path ? path.join('/') : '';
     const searchParams = request.nextUrl.searchParams.toString();
     const targetUrl = `http://localhost:${processInfo.port}/${targetPath}${searchParams ? `?${searchParams}` : ''}`;
 
@@ -77,30 +77,30 @@ export async function GET(
 // Support other HTTP methods
 export async function POST(
   request: NextRequest,
-  { params }: { params: { workspaceId: string; path: string[] } }
+  { params }: { params: Promise<{ workspaceId: string; path: string[] }> }
 ) {
-  return handleProxyRequest(request, params, 'POST');
+  return handleProxyRequest(request, await params, 'POST');
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { workspaceId: string; path: string[] } }
+  { params }: { params: Promise<{ workspaceId: string; path: string[] }> }
 ) {
-  return handleProxyRequest(request, params, 'PUT');
+  return handleProxyRequest(request, await params, 'PUT');
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { workspaceId: string; path: string[] } }
+  { params }: { params: Promise<{ workspaceId: string; path: string[] }> }
 ) {
-  return handleProxyRequest(request, params, 'DELETE');
+  return handleProxyRequest(request, await params, 'DELETE');
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { workspaceId: string; path: string[] } }
+  { params }: { params: Promise<{ workspaceId: string; path: string[] }> }
 ) {
-  return handleProxyRequest(request, params, 'PATCH');
+  return handleProxyRequest(request, await params, 'PATCH');
 }
 
 async function handleProxyRequest(

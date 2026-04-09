@@ -12,6 +12,10 @@ import { BottomPanel } from "@/components/workspace/BottomPanel";
 import { StatusBar } from "@/components/workspace/StatusBar";
 import { Preview } from "@/components/workspace/Preview";
 import { useWorkspaceStore } from "@/lib/workspace/workspace-store";
+'use client';
+
+import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useSandboxStatus } from "@/lib/sandbox/use-sandbox-status";
 import { useSandboxHeartbeat } from "@/lib/sandbox/use-sandbox-heartbeat";
 import { useWorkspaceAutoSave } from "@/lib/workspace/use-workspace-auto-save";
@@ -19,8 +23,8 @@ import type { SandboxInstance } from "@/lib/sandbox/types";
 
 type ViewMode = "code" | "preview" | "split";
 
-export default function WorkspacePage({ params }: { params: { id: string } }) {
-  const workspaceId = params.id;
+export default function WorkspacePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: workspaceId } = use(params);
   const router = useRouter();
 
   const {

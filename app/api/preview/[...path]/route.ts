@@ -11,12 +11,13 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
     // Construct the target URL
-    const path = params.path.join('/');
-    const targetUrl = `http://localhost:3000/${path}`;
+    const { path } = await params;
+    const pathStr = path.join('/');
+    const targetUrl = `http://localhost:3000/${pathStr}`;
     
     // Add query params if any
     const searchParams = request.nextUrl.searchParams.toString();
