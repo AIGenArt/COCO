@@ -41,7 +41,7 @@ export async function reconcileSandboxes(): Promise<ReconciliationResult> {
     const { data: sandboxes, error: fetchError } = await supabase
       .from('sandbox_instances')
       .select('*')
-      .in('status', ['creating', 'starting', 'running', 'paused']);
+      .in('status', ['creating', 'bootstrapping', 'starting', 'running', 'paused']);
 
     if (fetchError) {
       console.error('[Reconciliation] Error fetching sandboxes:', fetchError);

@@ -31,7 +31,7 @@ export class SandboxManager {
       .from('sandbox_instances')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .in('status', ['creating', 'starting', 'running']);
+      .in('status', ['creating', 'bootstrapping', 'starting', 'running']);
 
     if (existingSandboxes && existingSandboxes.length >= SANDBOX_LIMITS.MAX_ACTIVE_PER_WORKSPACE) {
       throw new Error(
@@ -244,7 +244,7 @@ export class SandboxManager {
       .from('sandbox_instances')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .in('status', ['creating', 'starting', 'running'])
+      .in('status', ['creating', 'bootstrapping', 'starting', 'running'])
       .order('created_at', { ascending: false })
       .limit(1)
       .single();

@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       .from('sandbox_instances')
       .select('id, status')
       .eq('workspace_id', workspaceId)
-      .in('status', ['creating', 'starting', 'running']);
+      .in('status', ['creating', 'bootstrapping', 'starting', 'running']);
 
     if (existingSandboxes && existingSandboxes.length >= SANDBOX_LIMITS.MAX_ACTIVE_PER_WORKSPACE) {
       return NextResponse.json(
